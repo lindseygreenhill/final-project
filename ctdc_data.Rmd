@@ -1,0 +1,15 @@
+---
+title: "CTDC_data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(janitor)
+library(tidyverse)
+```
+
+```{r data}
+ctdc_data <- read_csv("https://www.ctdatacollaborative.org/sites/default/files/The%20Global%20Dataset%203%20Sept%202018.csv") %>% clean_names()
+ctdc_data
+```
