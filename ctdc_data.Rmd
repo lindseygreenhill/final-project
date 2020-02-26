@@ -1,15 +1,67 @@
 ---
 title: "CTDC_data"
+author: "Lindsey Greenhill"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(janitor)
+library(naniar)
 library(tidyverse)
 ```
 
-```{r data}
-ctdc_data <- read_csv("https://www.ctdatacollaborative.org/sites/default/files/The%20Global%20Dataset%203%20Sept%202018.csv") %>% clean_names()
+```{r data, echo=FALSE}
+
+# reading in data from the Counter Trafficking Data Collective with 62 different
+# variables. Data set made in 2017. Includes 47,000 different victims of 43
+# different nationalities, with exploitation taking place across 52 different
+# countries. Original data class included 80,000 observations, but after
+# k-anonymization widdled down. Data set compiled through analysis of different
+# data models from different contributors. Polaris and IOM cofounders of this
+# project. Data set not random, not necessarily representative sample of all
+# human trafficking victims. Data from Liberty Asia also included. Years frange
+# from 2002 to 2017. want to keep yearOfRegistration, datasource,
+# gender,majorityStatus, majorityStatusAtExploit (-99 is NA), citizenship (need
+# to link with values based on iso country codes), all variables starting with
+# "is", include all "typeOfLabour" variables. Might not do all of these
+# initially.
+
+ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", "-99", "NA")) %>% 
+  clean_names() %>%
+  select(year_of_registration, datasource, gender,
+         majority_status, citizenship, country_of_exploitation,
+         ) %>%
+    filter(year_of_registration >= 2010)
 ctdc_data
 ```
+```{r country_code_data, echo=FALSE}
+
+# data from iso on country codes, which are used in teh ctdc data set
+
+code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names
+code_data
+```
+```{r join_data, echo=FALSE}
+
+# joined by iso country codes. Had to use inner_joins because it wasn't working
+# in just one. I also tried to use the suffix argument, but that  wouldn't work
+# because I would have needed to inner join by the two variables at the same
+# time, so I used mutate instead.
+
+joined_country_code_data <- ctdc_data %>%
+  inner_join(code_data, by = c("citizenship" = "code")) %>%
+  inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
+  mutate(origin_country = name.x, destination_country=  name.y)
+joined_country_code_data
+```
+```{r playing}
+
+#playing around with data to see prevalences
+
+joined_country_code_data %>% count(origin_country, sort = TRUE)
+joined_country_code_data %>% count(destination_country, sort = TRUE)
+```
+
+
+
