@@ -1,17 +1,20 @@
 ---
-title: "CTDC_data"
+title: "ms_3"
 author: "Lindsey Greenhill"
+date: "02/28/2020"
 output: html_document
 ---
+## About
+The purpose of this project is to analyze a data set compiled by the Counter Trafficking Data Collaborative. This data set is an anonymized collection of reports of human trafficking victims across the globe from 2002 to  2017. The data set contains information on about 47,000 victims. The observations in this data primarily come from a standardized combination of Polaris and IOM data. This data is not necessarily intended to be a representative sample of all human trafficking victims, but is one of the only large and reliable data sets on human trafficking publicly available. I chose to only look at data past 2010, because much of the data before then is missing. I plan on primarily focusing on the country of origin and country of destination for each trafficking victims. I am currently planning on using the polity index (which measures the level of democracy in a country and periods of transition) in conjunction with the ctdc data to see if there are any interesting patterns. I am also planning on focusing on non-US human trafficking, because American trafficking operates very differently than European, African, and Asian trafficking. I have joined the ctdc data and polity data based on country name and year. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(janitor)
 library(readxl)
+library(janitor)
+library(gt)
 library(tidyverse)
 ```
-
-```{r data, echo=FALSE}
+```{r ctdc_data, include=FALSE}
 
 # reading in data from the Counter Trafficking Data Collective with 62 different
 # variables. Data set made in 2017. Includes 47,000 different victims of 43
@@ -33,20 +36,23 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
          majority_status, citizenship, country_of_exploitation,
          ) %>%
     filter(year_of_registration >= 2010, citizenship != "US")
-ctdc_data
 ```
 
-```{r country_code_data, echo=FALSE}
+```{r country_code_data, include=FALSE}
 
 # data from iso on country codes, which are used in teh ctdc data set
 
 code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
-code_data
 ```
 
-```{r polity_data, echo=FALSE}
+```{r polity_data, include=FALSE}
 
-#reading in polity data. filtering for rows where year is >= 2010, because I'm only using data from then. Code book for this data set important to use. Country codes three characters instead of two, so I will try to join based on the country name instead. If that doesn't work I'll find a set that converts from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+#reading in polity data. filtering for rows where year is >= 2010, because I'm
+#only using data from then. Code book for this data set important to use.
+#Country codes three characters instead of two, so I will try to join based on
+#the country name instead. If that doesn't work I'll find a set that converts
+#from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+
 polity_data <- read_excel("raw-data/polity.xls") %>%
   clean_names() %>%
   filter(year >= 2010) %>%
@@ -55,7 +61,7 @@ polity_data
 
 ```
 
-```{r join_data, echo=FALSE}
+```{r join_data, include=FALSE}
 
 # joined by iso country codes. Had to use inner_joins because it wasn't working
 # in just one. I also tried to use the suffix argument, but that  wouldn't work
@@ -70,36 +76,21 @@ joined_country_code_data <- ctdc_data %>%
 joined_country_code_data
 ```
 
-```{r join_polity_data}
+```{r join_polity_data, include = FALSE}
+
+# joining based on year and country name. Had the same problem joining by two
+# variables as above so I had to use two inner joins. renamed the columns also
+# because suffix argument not working.
 
 joined_ctdc_code_polity <- joined_country_code_data %>%
     inner_join(polity_data, by = c("year_of_registration" = "year", "origin_country" = "country")) %>%
   inner_join(polity_data, by = c("year_of_registration" = "year", "destination_country" = "country")) %>%
   rename(polity_origin = polity.x, durable_origin = durable.x, polity_destination = polity.y, durable_destination = durable.y, year = year_of_registration)
 
-joined_ctdc_code_polity
-
 ```
-
-```{r playing}
-
-#playing around with data to see prevalences
-
-joined_country_code_data %>% count(origin_country, sort = TRUE)
-joined_country_code_data %>% count(destination_country, sort = TRUE)
-joined_country_code_data %>% group_by(origin_country, destination_country) %>% summarize(n())
-x <- joined_ctdc_code_polity %>% filter(polity_origin > -12,
-                                        polity_destination > -12)
-ggplot(x, aes(polity_origin)) +
-  geom_bar()
-ggplot(x, aes(polity_destination)) +
-  geom_bar()
-
-y<- joined_ctdc_code_polity %>% filter(origin_country != destination_country)
-
-
-
+```{r show_table, echo=FALSE}
+joined_ctdc_code_polity %>% slice(1:20) %>%
+  gt() %>%
+  tab_header(title = "CTDC and Polity Joined Data")
 ```
-
-
 
