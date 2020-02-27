@@ -7,7 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(janitor)
-library(naniar)
+library(readxl)
 library(tidyverse)
 ```
 
@@ -35,13 +35,26 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
     filter(year_of_registration >= 2010)
 ctdc_data
 ```
+
 ```{r country_code_data, echo=FALSE}
 
 # data from iso on country codes, which are used in teh ctdc data set
 
-code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names
+code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
 code_data
 ```
+
+```{r polity_data, echo=FALSE}
+
+#reading in polity data. filtering for rows where year is >= 2010, because I'm only using data from then. Code book for this data set important to use. Country codes three characters instead of two, so I will try to join based on the country name instead. If that doesn't work I'll find a set that converts from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+polity_data <- read_excel("raw-data/polity.xls") %>%
+  clean_names() %>%
+  filter(year >= 2010) %>%
+  select(country, year, polity, durable)
+polity_data
+
+```
+
 ```{r join_data, echo=FALSE}
 
 # joined by iso country codes. Had to use inner_joins because it wasn't working
@@ -52,15 +65,35 @@ code_data
 joined_country_code_data <- ctdc_data %>%
   inner_join(code_data, by = c("citizenship" = "code")) %>%
   inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
-  mutate(origin_country = name.x, destination_country=  name.y)
+  rename(origin_country = name.x, destination_country = name.y) %>%
+  select(-majority_status, - citizenship, -country_of_exploitation, -datasource)
 joined_country_code_data
 ```
+
+```{r join_polity_data}
+
+joined_ctdc_code_polity <- joined_country_code_data %>%
+    inner_join(polity_data, by = c("year_of_registration" = "year", "origin_country" = "country")) %>%
+  inner_join(polity_data, by = c("year_of_registration" = "year", "destination_country" = "country")) %>%
+  rename(polity_origin = polity.x, durable_origin = durable.x, polity_destination = polity.y, durable_destination = durable.y, year = year_of_registration)
+
+joined_ctdc_code_polity
+
+```
+
 ```{r playing}
 
 #playing around with data to see prevalences
 
 joined_country_code_data %>% count(origin_country, sort = TRUE)
 joined_country_code_data %>% count(destination_country, sort = TRUE)
+joined_country_code_data %>% group_by(origin_country, destination_country) %>% summarize(n())
+x <- joined_ctdc_code_polity %>% filter(polity_origin > -12,
+                                        polity_destination > -12)
+ggplot(x, aes(polity_origin)) +
+  geom_bar()
+ggplot(x, aes(polity_destination)) +
+  geom_bar()
 ```
 
 
