@@ -93,4 +93,5 @@ joined_ctdc_code_polity %>% slice(1:20) %>%
   gt() %>%
   tab_header(title = "CTDC and Polity Joined Data")
 ```
+Repo url: https://github.com/lindseygreenhill/final-project 
 

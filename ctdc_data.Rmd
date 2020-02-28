@@ -33,7 +33,6 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
          majority_status, citizenship, country_of_exploitation,
          ) %>%
     filter(year_of_registration >= 2010, citizenship != "US")
-ctdc_data
 ```
 
 ```{r country_code_data, echo=FALSE}
@@ -46,7 +45,12 @@ code_data
 
 ```{r polity_data, echo=FALSE}
 
-#reading in polity data. filtering for rows where year is >= 2010, because I'm only using data from then. Code book for this data set important to use. Country codes three characters instead of two, so I will try to join based on the country name instead. If that doesn't work I'll find a set that converts from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+#reading in polity data. filtering for rows where year is >= 2010, because I'm
+#only using data from then. Code book for this data set important to use.
+#Country codes three characters instead of two, so I will try to join based on
+#the country name instead. If that doesn't work I'll find a set that converts
+#from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+
 polity_data <- read_excel("raw-data/polity.xls") %>%
   clean_names() %>%
   filter(year >= 2010) %>%
@@ -72,12 +76,12 @@ joined_country_code_data
 
 ```{r join_polity_data}
 
+# joining based on year and country name. Had the same problem joining by two variables as above so I had to use two inner joins. renamed the columns also because suffix argument not working. 
+
 joined_ctdc_code_polity <- joined_country_code_data %>%
     inner_join(polity_data, by = c("year_of_registration" = "year", "origin_country" = "country")) %>%
   inner_join(polity_data, by = c("year_of_registration" = "year", "destination_country" = "country")) %>%
   rename(polity_origin = polity.x, durable_origin = durable.x, polity_destination = polity.y, durable_destination = durable.y, year = year_of_registration)
-
-joined_ctdc_code_polity
 
 ```
 
