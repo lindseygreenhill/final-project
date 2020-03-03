@@ -85,25 +85,74 @@ joined_ctdc_code_polity <- joined_country_code_data %>%
 
 ```
 
-```{r playing}
+```{r playing, echo=FALSE}
 
 #playing around with data to see prevalences
 
 joined_country_code_data %>% count(origin_country, sort = TRUE)
 joined_country_code_data %>% count(destination_country, sort = TRUE)
 joined_country_code_data %>% group_by(origin_country, destination_country) %>% summarize(n())
+
+# data set without the transition countries 
 x <- joined_ctdc_code_polity %>% filter(polity_origin > -12,
                                         polity_destination > -12)
+# histograms of polity origin and polity destination
 ggplot(x, aes(polity_origin)) +
-  geom_bar()
+  geom_histogram()
 ggplot(x, aes(polity_destination)) +
-  geom_bar()
+  geom_histogram()
 
-y<- joined_ctdc_code_polity %>% filter(origin_country != destination_country)
-
+# adding a difference column of polity origin and destination
+diff<- joined_ctdc_code_polity %>% filter(origin_country != destination_country, polity_origin > -13, origin_country != "United States") %>%
+  mutate(difference = polity_origin - polity_destination)
+# summary of the average of the differences, = 1 ish 
+sum <- diff %>% summarize(avg = mean(difference))
+sum
+# distribution of differences 
+ggplot(diff, aes(difference)) +
+  geom_histogram()
 
 
 ```
+```{r playing2, echo=FALSE}
+
+# looking at relationship between polity of origin and destination, doesn't seem to be a relationship 
+
+ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
+  geom_point()
+```
+```{r playing3, echo=FALSE}
+
+# bar charts of origin countries
+
+by_origin <- ggplot(joined_country_code_data,
+                    aes(origin_country)) +
+  geom_bar()
+by_origin
+
+# list with top five origin countries
+top_five_origin <- joined_country_code_data %>%
+  count(origin_country, sort=TRUE) %>%
+  slice(1:5) %>% pull(origin_country)
+top_five_origin
+```
+```{r playing4, echo=FALSE}
+# destination countries by top five origin countries
+top_five_origins_data <- joined_ctdc_code_polity %>%
+  filter(origin_country %in% top_five_origin) 
+top_five_origins_data
+# graph of top five destinations destinations by top five origins
+destinations_by_origin_graph <- ggplot(top_five_origins_data, 
+                                       aes(destination_country)) +
+  geom_bar() +
+  facet_wrap(vars(origin_country))
+destinations_by_origin_graph
+
+
+```
+
+
+
 
 
 
