@@ -1,0 +1,131 @@
+---
+title: "ms_4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(janitor)
+library(gt)
+library(tidyverse)
+```
+
+## Thoughts
+
+I feel like I pretty thoroughly explained my data in the last milestone, so I
+thought I would discuss in more depth the relationships I hope to investigate
+using this data. My vision for this project is to do an exploration of the CTDC
+data. As of now, I have looked at the most common origin and destination
+countries. I am thinking of creating a dodged bar chart of the frequencies of
+these countries which would give a good comparison I think. I am then going to
+look at the top five origin countries and looking at the characteristics of
+their destination countries. For example, what polity level do their destination
+countries have? what gdp? I have included some preliminary graphs that I have
+made for cambodia and the Philippines investigating their destination countries.
+I have yet to find any strong relationship with the polity scores, but I will
+continue looking. I'm also currently trying to find easy GDP data for the
+countries by year and not just in 2020 or 2019. I need it dating back to 2010.
+
+```{r ctdc_data, include=FALSE}
+
+# reading in data from the Counter Trafficking Data Collective with 62 different
+# variables. Data set made in 2017. Includes 47,000 different victims of 43
+# different nationalities, with exploitation taking place across 52 different
+# countries. Original data class included 80,000 observations, but after
+# k-anonymization widdled down. Data set compiled through analysis of different
+# data models from different contributors. Polaris and IOM cofounders of this
+# project. Data set not random, not necessarily representative sample of all
+# human trafficking victims. Data from Liberty Asia also included. Years frange
+# from 2002 to 2017. want to keep yearOfRegistration, datasource,
+# gender,majorityStatus, majorityStatusAtExploit (-99 is NA), citizenship (need
+# to link with values based on iso country codes), all variables starting with
+# "is", include all "typeOfLabour" variables. Might not do all of these
+# initially.
+
+ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", "-99", "NA")) %>% 
+  clean_names() %>%
+  select(year_of_registration, datasource, gender,
+         majority_status, citizenship, country_of_exploitation,
+         ) %>%
+    filter(year_of_registration >= 2010, citizenship != "US")
+```
+
+```{r country_code_data, include=FALSE}
+
+# data from iso on country codes, which are used in teh ctdc data set
+
+code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
+```
+
+```{r polity_data, include=FALSE}
+
+#reading in polity data. filtering for rows where year is >= 2010, because I'm
+#only using data from then. Code book for this data set important to use.
+#Country codes three characters instead of two, so I will try to join based on
+#the country name instead. If that doesn't work I'll find a set that converts
+#from iso to alpha codes. Want to keep: country, year, polity, durable, persist
+
+polity_data <- read_excel("raw-data/polity.xls") %>%
+  clean_names() %>%
+  filter(year >= 2010) %>%
+  select(country, year, polity, durable)
+polity_data
+
+```
+
+```{r join_data, include=FALSE}
+
+# joined by iso country codes. Had to use inner_joins because it wasn't working
+# in just one. I also tried to use the suffix argument, but that  wouldn't work
+# because I would have needed to inner join by the two variables at the same
+# time, so I used mutate instead.
+
+joined_country_code_data <- ctdc_data %>%
+  inner_join(code_data, by = c("citizenship" = "code")) %>%
+  inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
+  rename(origin_country = name.x, destination_country = name.y) %>%
+  select(-majority_status, - citizenship, -country_of_exploitation, -datasource)
+joined_country_code_data
+```
+
+```{r join_polity_data, include = FALSE}
+
+# joining based on year and country name. Had the same problem joining by two
+# variables as above so I had to use two inner joins. renamed the columns also
+# because suffix argument not working.
+
+joined_ctdc_code_polity <- joined_country_code_data %>%
+    inner_join(polity_data, by = c("year_of_registration" = "year", "origin_country" = "country")) %>%
+  inner_join(polity_data, by = c("year_of_registration" = "year", "destination_country" = "country")) %>%
+  rename(polity_origin = polity.x, durable_origin = durable.x, polity_destination = polity.y, durable_destination = durable.y, year = year_of_registration)
+
+```
+## Cambodia Graph 
+```{r Cambodia, echo=FALSE}
+
+# data set with just Cambodia information. Plot showing destination countries
+
+Cambodia <- joined_ctdc_code_polity %>%
+  filter(origin_country == "Cambodia") 
+Cambodia_destinations <- ggplot(Cambodia, aes(destination_country)) +
+  geom_bar() +
+  labs(title = "Cambodia's Destination Countries")
+Cambodia_destinations
+
+```
+
+## Philippines Graph
+
+```{r Philipinnes, echo=FALSE}
+
+# data set identical to Cambodia but with Philippines. Plot showing destination
+# countries
+
+Philippines <- joined_ctdc_code_polity %>%
+  filter(origin_country == "Philippines") 
+Philippines_destinations <- ggplot(Philippines, aes(destination_country)) +
+  geom_bar() +
+  labs(title = "Philippines's Destination Countries")
+Philippines_destinations
+```
