@@ -11,7 +11,7 @@ library(readxl)
 library(tidyverse)
 ```
 
-```{r data, echo=FALSE}
+```{r data, include=FALSE}
 
 # reading in data from the Counter Trafficking Data Collective with 62 different
 # variables. Data set made in 2017. Includes 47,000 different victims of 43
@@ -35,7 +35,7 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
     filter(year_of_registration >= 2010, citizenship != "US")
 ```
 
-```{r country_code_data, echo=FALSE}
+```{r country_code_data, include=FALSE}
 
 # data from iso on country codes, which are used in teh ctdc data set
 
@@ -43,7 +43,7 @@ code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
 code_data
 ```
 
-```{r polity_data, echo=FALSE}
+```{r polity_data, include=FALSE}
 
 #reading in polity data. filtering for rows where year is >= 2010, because I'm
 #only using data from then. Code book for this data set important to use.
@@ -59,7 +59,7 @@ polity_data
 
 ```
 
-```{r join_data, echo=FALSE}
+```{r join_data, include=FALSE}
 
 # joined by iso country codes. Had to use inner_joins because it wasn't working
 # in just one. I also tried to use the suffix argument, but that  wouldn't work
@@ -74,24 +74,33 @@ joined_country_code_data <- ctdc_data %>%
 joined_country_code_data
 ```
 
-```{r join_polity_data}
+```{r join_polity_data, include=FALSE}
 
-# joining based on year and country name. Had the same problem joining by two variables as above so I had to use two inner joins. renamed the columns also because suffix argument not working. 
+# joining based on year and country name. Had the same problem joining by two
+# variables as above so I had to use two inner joins. renamed the columns also
+# because suffix argument not working.
 
 joined_ctdc_code_polity <- joined_country_code_data %>%
-    inner_join(polity_data, by = c("year_of_registration" = "year", "origin_country" = "country")) %>%
-  inner_join(polity_data, by = c("year_of_registration" = "year", "destination_country" = "country")) %>%
-  rename(polity_origin = polity.x, durable_origin = durable.x, polity_destination = polity.y, durable_destination = durable.y, year = year_of_registration)
+    inner_join(polity_data, by = c("year_of_registration" = "year",
+                                   "origin_country" = "country")) %>%
+  inner_join(polity_data, by = c("year_of_registration" = "year", 
+                                 "destination_country" = "country")) %>%
+  rename(polity_origin = polity.x, durable_origin = durable.x, 
+         polity_destination = polity.y, 
+         durable_destination = durable.y,
+         year = year_of_registration)
 
 ```
 
-```{r playing, echo=FALSE}
+```{r playing, include=FALSE}
 
 #playing around with data to see prevalences
 
 joined_country_code_data %>% count(origin_country, sort = TRUE)
 joined_country_code_data %>% count(destination_country, sort = TRUE)
-joined_country_code_data %>% group_by(origin_country, destination_country) %>% summarize(n())
+joined_country_code_data %>% group_by(origin_country,
+                                      destination_country) %>% 
+  summarize(n())
 
 # data set without the transition countries 
 x <- joined_ctdc_code_polity %>% filter(polity_origin > -12,
@@ -103,7 +112,9 @@ ggplot(x, aes(polity_destination)) +
   geom_histogram()
 
 # adding a difference column of polity origin and destination
-diff<- joined_ctdc_code_polity %>% filter(origin_country != destination_country, polity_origin > -13, origin_country != "United States") %>%
+diff<- joined_ctdc_code_polity %>% filter(origin_country != destination_country,
+                                          polity_origin > -13, 
+                                          origin_country != "United States") %>%
   mutate(difference = polity_origin - polity_destination)
 # summary of the average of the differences, = 1 ish 
 sum <- diff %>% summarize(avg = mean(difference))
@@ -114,9 +125,11 @@ ggplot(diff, aes(difference)) +
 
 
 ```
-```{r playing2, echo=FALSE}
 
-# looking at relationship between polity of origin and destination, doesn't seem to be a relationship 
+```{r playing2, include=FALSE}
+
+# looking at relationship between polity of origin and destination, doesn't seem
+# to be a relationship
 
 ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
   geom_point()
@@ -127,29 +140,70 @@ ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
 
 by_origin <- ggplot(joined_country_code_data,
                     aes(origin_country)) +
-  geom_bar()
+  geom_bar() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))
 by_origin
 
 # list with top five origin countries
 top_five_origin <- joined_country_code_data %>%
   count(origin_country, sort=TRUE) %>%
   slice(1:5) %>% pull(origin_country)
-top_five_origin
 ```
-```{r playing4, echo=FALSE}
-# destination countries by top five origin countries
-top_five_origins_data <- joined_ctdc_code_polity %>%
-  filter(origin_country %in% top_five_origin) 
-top_five_origins_data
-# graph of top five destinations destinations by top five origins
-destinations_by_origin_graph <- ggplot(top_five_origins_data, 
-                                       aes(destination_country)) +
+
+
+
+```{r Cambodia, echo=FALSE}
+
+# data set with just Cambodia information. Plot showing destination countries
+
+Cambodia <- joined_ctdc_code_polity %>%
+  filter(origin_country == "Cambodia") 
+Cambodia_destinations <- ggplot(Cambodia, aes(destination_country)) +
   geom_bar() +
-  facet_wrap(vars(origin_country))
-destinations_by_origin_graph
-
+  labs(title = "Cambodia's Destination Countries")
+Cambodia_destinations
 
 ```
+
+```{r Philipinnes, echo=FALSE}
+
+# data set identical to Cambodia but with Philippines. Plot showing destination
+# countries
+
+Philippines <- joined_ctdc_code_polity %>%
+  filter(origin_country == "Philippines") 
+Philippines_destinations <- ggplot(Philippines, aes(destination_country)) +
+  geom_bar() +
+  labs(title = "Philippines's Destination Countries")
+Philippines_destinations
+```
+
+```{r allCountries, echo=FALSE}
+
+# I created a new data set by binding the rows of two new data sets that just
+# contain the origin and destination countries. I renamed the columns in the
+# select statements so that the new data set I created when I binded rows only
+# had a country column and an id column. I then used the case_when function to
+# rename those ids. I had to change the angle of the names for the ggplot so I
+# could read all of the country names.
+
+origins <- joined_ctdc_code_polity %>% select(country = origin_country)
+destinations <- joined_ctdc_code_polity %>% select(country = destination_country)
+
+bind <- bind_rows(origins, destinations, .id = "id") %>%
+  mutate(id = case_when(id == 1 ~ "origin country", 
+                        id == 2 ~ "destination country"))
+ggplot(bind, aes(country, fill = id)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Counts of Countries by Origin and Destination") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+
 
 
 
