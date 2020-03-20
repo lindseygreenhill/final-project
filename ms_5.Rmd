@@ -1,6 +1,7 @@
 ---
-title: "CTDC_data"
+title: "ms_5"
 author: "Lindsey Greenhill"
+date:  "03/20/2020"
 output: html_document
 ---
 
@@ -34,13 +35,11 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
          ) %>%
     filter(year_of_registration >= 2010, citizenship != "US")
 ```
-
 ```{r country_code_data, include=FALSE}
 
 # data from iso on country codes, which are used in teh ctdc data set
 
 code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
-code_data
 ```
 
 ```{r polity_data, include=FALSE}
@@ -55,7 +54,6 @@ polity_data <- read_excel("raw-data/polity.xls") %>%
   clean_names() %>%
   filter(year >= 2010) %>%
   select(country, year, polity, durable)
-polity_data
 
 ```
 
@@ -71,7 +69,6 @@ joined_country_code_data <- ctdc_data %>%
   inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
   rename(origin_country = name.x, destination_country = name.y) %>%
   select(-majority_status, - citizenship, -country_of_exploitation, -datasource)
-joined_country_code_data
 ```
 
 ```{r join_polity_data, include=FALSE}
@@ -92,93 +89,6 @@ joined_ctdc_code_polity <- joined_country_code_data %>%
 
 ```
 
-```{r playing, include=FALSE}
-
-#playing around with data to see prevalences
-
-joined_country_code_data %>% count(origin_country, sort = TRUE)
-joined_country_code_data %>% count(destination_country, sort = TRUE)
-joined_country_code_data %>% group_by(origin_country,
-                                      destination_country) %>% 
-  summarize(n())
-
-# data set without the transition countries 
-x <- joined_ctdc_code_polity %>% filter(polity_origin > -12,
-                                        polity_destination > -12)
-# histograms of polity origin and polity destination
-ggplot(x, aes(polity_origin)) +
-  geom_histogram()
-ggplot(x, aes(polity_destination)) +
-  geom_histogram()
-
-# adding a difference column of polity origin and destination
-diff<- joined_ctdc_code_polity %>% filter(origin_country != destination_country,
-                                          polity_origin > -13, 
-                                          origin_country != "United States") %>%
-  mutate(difference = polity_origin - polity_destination)
-# summary of the average of the differences, = 1 ish 
-sum <- diff %>% summarize(avg = mean(difference))
-sum
-# distribution of differences 
-ggplot(diff, aes(difference)) +
-  geom_histogram()
-
-
-```
-
-```{r playing2, include=FALSE}
-
-# looking at relationship between polity of origin and destination, doesn't seem
-# to be a relationship
-
-ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
-  geom_point()
-```
-```{r playing3, echo=FALSE}
-
-# bar charts of origin countries
-
-by_origin <- ggplot(joined_country_code_data,
-                    aes(origin_country)) +
-  geom_bar() +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90))
-by_origin
-
-# list with top five origin countries
-top_five_origin <- joined_country_code_data %>%
-  count(origin_country, sort=TRUE) %>%
-  slice(1:5) %>% pull(origin_country)
-```
-
-
-
-```{r Cambodia, echo=FALSE}
-
-# data set with just Cambodia information. Plot showing destination countries
-
-Cambodia <- joined_ctdc_code_polity %>%
-  filter(origin_country == "Cambodia") 
-Cambodia_destinations <- ggplot(Cambodia, aes(destination_country)) +
-  geom_bar() +
-  labs(title = "Cambodia's Destination Countries")
-Cambodia_destinations
-
-```
-
-```{r Philipinnes, echo=FALSE}
-
-# data set identical to Cambodia but with Philippines. Plot showing destination
-# countries
-
-Philippines <- joined_ctdc_code_polity %>%
-  filter(origin_country == "Philippines") 
-Philippines_destinations <- ggplot(Philippines, aes(destination_country)) +
-  geom_bar() +
-  labs(title = "Philippines's Destination Countries")
-Philippines_destinations
-```
-
 ```{r allCountries, echo=FALSE}
 
 # I created a new data set by binding the rows of two new data sets that just
@@ -196,19 +106,13 @@ bind <- bind_rows(origins, destinations, .id = "id") %>%
                         id == 2 ~ "destination country"))
 ggplot(bind, aes(country, fill = id)) +
   geom_bar(position = "dodge") +
-  labs(title = "Counts of Countries by Origin and Destination") +
+  labs(title = "Counts of Countries by Origin and Destination",
+       subtitle = "Data from Counter Trafficking Data Collaborative") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(x = "Country",
        y = "Count")
 
 ```
-
-
-
-
-
-
-
 
 
