@@ -1,0 +1,78 @@
+---
+title: "final_project_organized_1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(janitor)
+library(readxl)
+library(ggthemes)
+library(tidyverse)
+```
+
+```{r data, include=FALSE}
+
+# reading in data from the Counter Trafficking Data Collective with 62 different
+# variables. Data set made in 2017. Includes 47,000 different victims of 43
+# different nationalities, with exploitation taking place across 52 different
+# countries. Original data class included 80,000 observations, but after
+# k-anonymization widdled down. Data set compiled through analysis of different
+# data models from different contributors. Polaris and IOM cofounders of this
+# project. Data set not random, not necessarily representative sample of all
+# human trafficking victims. Data from Liberty Asia also included. Years frange
+# from 2002 to 2017. want to keep yearOfRegistration, datasource,
+# gender,majorityStatus, majorityStatusAtExploit (-99 is NA), citizenship (need
+# to link with values based on iso country codes), all variables starting with
+# "is", include all "typeOfLabour" variables. Might not do all of these
+# initially.
+
+ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", "-99", "NA")) %>% 
+  clean_names() %>%
+  select(year_of_registration, datasource, gender,
+         majority_status,
+         citizenship, type_of_exploit_concatenated,
+         country_of_exploitation,
+         ) %>%
+    filter(year_of_registration >= 2010)
+```
+
+```{r exploreData, echo=FALSE}
+ctdc_data %>% count(majority_status)
+ctdc_data %>% count(type_of_exploit_concatenated)
+```
+
+```{r byexploit1, echo=FALSE}
+
+# mutating the type of exploitation concatenated to reflect the most frequent
+# types to make plotting easier. Note that "other" was already the most frequent
+# value in the data
+
+byexploit1 <- ctdc_data %>%
+  mutate(type = case_when(
+type_of_exploit_concatenated == "Forced labour" ~ "Forced Labor",
+type_of_exploit_concatenated == "Forced marriage" ~ "Forced Marriage",
+type_of_exploit_concatenated == "Sexual exploitation" ~ "Sexual Exploitation",
+type_of_exploit_concatenated == "Slavery and similar practices"  ~ "Slavery",
+TRUE ~ "Other"))
+
+# reordering the factor levels to be reflective of their frequencies
+
+byexploit1$type <- reorder(byexploit1$type, byexploit1$type, FUN = length)
+
+# graph of frequencies of types 
+
+byexploit1_graph <- byexploit1 %>%
+  ggplot(aes(x = type)) +
+  geom_bar() +
+  labs(title = "Counts of Different Types of Exploitation",
+       subtitle  = "Other is most frequent followed by Sexual Exploitation and Forced Labor",
+       x = "Type of Exploitation",
+       y = "Count") +
+  theme_classic()
+
+byexploit1_graph
+
+```
+
+
