@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(janitor)
 library(readxl)
 library(ggthemes)
+library(ggsci)
 library(tidyverse)
 ```
 
@@ -55,7 +56,22 @@ ctdc_data %>% count(majority_status)
 ctdc_data %>% count(citizenship)
 ctdc_data %>% count(country_of_exploitation)
 ctdc_data %>% count(type_of_exploit_concatenated)
+ctdc_data %>% count(gender)
 ```
+
+```{r bygender, echo=FALSE}
+gender <- ctdc_data %>%
+  ggplot(aes(x = gender)) +
+  geom_bar() +
+  labs(title = "Counts of Gender",
+       subtitle = "Majority female",
+       x = "Gender",
+       y = "Count") +
+  theme_classic()
+gender
+
+```
+
 
 ```{r byexploit1, echo=FALSE}
 
@@ -90,6 +106,7 @@ byexploit1_graph
 
 ```
 
+
 ```{r all_ages, echo=FALSE}
 
 # created stacked bar chart of all age statuses by type of exploitation
@@ -101,7 +118,9 @@ ages_by_type_stack <- byexploit1 %>%
   labs(title = "Ages by Type of Exploitation",
        x = "Age Status",
        y = "Count") +
-  theme_classic()
+  theme_classic() +
+  scale_fill_npg()
+ages_by_type_stack
 
 # same graph as above but position dodge instead of stack. 
 
@@ -112,7 +131,8 @@ ages_by_type_dodge <- byexploit1 %>%
   labs(title = "Ages by Type of Exploitation",
        x = "Age Status",
        y = "Count") +
-  theme_classic()
+  theme_classic() +
+  scale_fill_npg()
 
 ages_by_type_dodge
 
@@ -135,9 +155,109 @@ type_age <- function(x){
          y = "Count") +
     theme_classic()
 }
-type_age("Forced Labour")
-type_age("Sexual Exploitation")
+
+# using function for forced labor and sexual exploitation
+
+labor_age <- type_age("Forced Labor")
+
+sex_age <- type_age("Sexual Exploitation")
 ```
+
+```{r all_genders, echo=FALSE}
+genders_by_type_stack <- byexploit1 %>%
+  mutate(gender = reorder(gender, gender, FUN = length))  %>%
+  ggplot(aes(x = gender, fill = type)) +
+  geom_bar() +
+  labs(title = "Gender by Type of Exploitation",
+       x = "Gender Status",
+       y = "Count") +
+  theme_classic() +
+  scale_fill_npg()
+genders_by_type_stack
+
+genders_by_type_dodge <- byexploit1 %>%
+  mutate(gender = reorder(gender, gender, FUN = length))  %>%
+  ggplot(aes(x = gender, fill = type)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Gender by Type of Exploitation",
+       x = "Gender Status",
+       y = "Count") +
+  theme_classic() +
+  scale_fill_npg()
+genders_by_type_dodge
+
+```
+
+
+```{r by_type_gender, echo=FALSE}
+# going to create a function that gives information for a certain type of
+# exploitation
+
+type_gender <- function(x){
+  byexploit1 %>%
+    filter(type == x) %>%
+    mutate(gender = reorder(gender, gender, FUN = length)) %>%
+    ggplot(aes(x = gender)) +
+    geom_bar() +
+    labs(title = paste("Gender of Exploitation: ", x),
+         x = "Gender",
+         y = "Count") +
+    theme_classic()
+}
+
+# using function for forced labor and sexual exploitation
+
+labor_gender <- type_gender("Forced Labor")
+labor_gender1 <- labor_gender + labs(subtitle = "Slight majority male")
+labor_gender1
+sex_gender <- type_gender("Sexual Exploitation")
+sex_gender1 <- sex_gender + labs(subtitle = "Large majority female")
+sex_gender1
+```
+
+
+```{r US, echo=FALSE}
+
+# we can see that the majority of exploitation in US in this data set is sexual exploitation 
+
+USA <- byexploit1 %>%
+  filter(citizenship == "US")
+  
+USA_type <- USA %>%
+  ggplot(aes(x = type)) +
+  geom_bar() +
+  labs(title = "Types of Exploitation in the United States",
+       subtitle = "Large majority is Sexual Exploitation",
+       x = "Type of Exploitation",
+       y = "Count") +
+  theme_classic()
+USA_type
+
+# bar chart of age distribution in the US
+
+USA_age <- USA %>%
+  ggplot(aes(x = majority_status)) +
+  geom_bar() +
+  labs(title = "Age Status in the United States",
+       subtitle = "Majority are adult, but there are a significant amount of minors",
+       x = "Age Status",
+       y = "Count") +
+  theme_classic()
+USA_age
+```
+
+```{r origins}
+origins <- ctdc_data %>%
+  filter(citizenship != "US") %>%
+  count(citizenship, sort = T) %>%
+  slice(1:5) %>%
+  unnest()
+origins
+
+
+```
+
+
 
 
 

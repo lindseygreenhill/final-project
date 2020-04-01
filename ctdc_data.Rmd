@@ -8,6 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(janitor)
 library(readxl)
+library(ggthemes)
 library(tidyverse)
 ```
 
@@ -92,7 +93,7 @@ joined_ctdc_code_polity <- joined_country_code_data %>%
 
 ```
 
-```{r playing, include=FALSE}
+```{r playing, echo=FALSE}
 
 #playing around with data to see prevalences
 
@@ -126,14 +127,16 @@ ggplot(diff, aes(difference)) +
 
 ```
 
-```{r playing2, include=FALSE}
+```{r playing2, echo=FALSE}
 
 # looking at relationship between polity of origin and destination, doesn't seem
 # to be a relationship
 
-ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
+ ggplot(diff, aes(x = polity_origin, y = polity_destination)) +
   geom_point()
+
 ```
+
 ```{r playing3, echo=FALSE}
 
 # bar charts of origin countries
@@ -173,9 +176,11 @@ Cambodia_destinations
 
 Philippines <- joined_ctdc_code_polity %>%
   filter(origin_country == "Philippines") 
+
 Philippines_destinations <- ggplot(Philippines, aes(destination_country)) +
   geom_bar() +
-  labs(title = "Philippines's Destination Countries")
+  labs(title = "Philippines's Destination Countries") +
+  theme(axis.text.x = element_text(angle = 90))
 Philippines_destinations
 ```
 
