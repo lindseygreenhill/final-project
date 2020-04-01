@@ -37,8 +37,23 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
     filter(year_of_registration >= 2010)
 ```
 
+```{r country_code_data, include=FALSE}
+
+# data from iso on country codes, which are used in the ctdc data set joined to ctdc data 
+
+code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
+
+joined_data <- ctdc_data %>%
+  inner_join(code_data, by = c("citizenship" = "code")) %>%
+  inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
+  rename(origin_country = name.x, destination_country = name.y) %>%
+  select(-citizenship, -country_of_exploitation, -datasource)
+```
+
 ```{r exploreData, echo=FALSE}
 ctdc_data %>% count(majority_status)
+ctdc_data %>% count(citizenship)
+ctdc_data %>% count(country_of_exploitation)
 ctdc_data %>% count(type_of_exploit_concatenated)
 ```
 
@@ -74,5 +89,55 @@ byexploit1_graph <- byexploit1 %>%
 byexploit1_graph
 
 ```
+
+```{r all_ages, echo=FALSE}
+
+# created stacked bar chart of all age statuses by type of exploitation
+
+ages_by_type_stack <- byexploit1 %>%
+  mutate(majority_status = reorder(majority_status, majority_status, FUN = length))  %>%
+  ggplot(aes(x = majority_status, fill = type)) +
+  geom_bar() +
+  labs(title = "Ages by Type of Exploitation",
+       x = "Age Status",
+       y = "Count") +
+  theme_classic()
+
+# same graph as above but position dodge instead of stack. 
+
+ages_by_type_dodge <- byexploit1 %>%
+  mutate(majority_status = reorder(majority_status, majority_status, FUN = length))  %>%
+  ggplot(aes(x = majority_status, fill = type)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Ages by Type of Exploitation",
+       x = "Age Status",
+       y = "Count") +
+  theme_classic()
+
+ages_by_type_dodge
+
+
+```
+
+```{r by_type_age, echo=FALSE}
+
+# going to create a function that gives information for a certain type of
+# exploitation
+
+type_age <- function(x){
+  byexploit1 %>%
+    filter(type == x) %>%
+    mutate(majority_status  = reorder(majority_status, majority_status, FUN = length)) %>%
+    ggplot(aes(x = majority_status)) +
+    geom_bar() +
+    labs(title = paste("Ages of Exploitation: ", x),
+         x = "Age",
+         y = "Count") +
+    theme_classic()
+}
+type_age("Forced Labour")
+type_age("Sexual Exploitation")
+```
+
 
 
