@@ -1,7 +1,4 @@
 ---
-title: "ms_5"
-author: "Lindsey Greenhill"
-date:  "03/20/2020"
 output: html_document
 ---
 

@@ -35,7 +35,15 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
          citizenship, type_of_exploit_concatenated,
          country_of_exploitation,
          ) %>%
+  mutate(type = case_when(
+          type_of_exploit_concatenated == "Forced labour" ~ "Forced Labor",
+          type_of_exploit_concatenated == "Forced marriage" ~ "Forced Marriage",
+          type_of_exploit_concatenated == "Sexual exploitation" ~ "Sexual Exploitation",
+          type_of_exploit_concatenated == "Slavery and similar practices"  ~ "Slavery",
+          TRUE ~ "Other")) %>%
+  rename(age = majority_status) %>%
     filter(year_of_registration >= 2010)
+  
 ```
 
 ```{r country_code_data, include=FALSE}
@@ -121,21 +129,9 @@ ages_by_type_stack <- byexploit1 %>%
        y = "Count") +
   theme_classic() +
   scale_fill_npg()
-ages_by_type_stack
 
-# same graph as above but position dodge instead of stack. 
+ggsave("final/ages_by_type.png")
 
-ages_by_type_dodge <- byexploit1 %>%
-  mutate(age = reorder(age, age, FUN = length))  %>%
-  ggplot(aes(x = age, fill = type)) +
-  geom_bar(position = "dodge") +
-  labs(title = "Ages by Type of Exploitation",
-       x = "Age Status",
-       y = "Count") +
-  theme_classic() +
-  scale_fill_npg()
-
-ages_by_type_dodge
 
 
 ```
@@ -175,18 +171,8 @@ genders_by_type_stack <- byexploit1 %>%
        y = "Count") +
   theme_classic() +
   scale_fill_npg()
-genders_by_type_stack
 
-genders_by_type_dodge <- byexploit1 %>%
-  mutate(gender = reorder(gender, gender, FUN = length))  %>%
-  ggplot(aes(x = gender, fill = type)) +
-  geom_bar(position = "dodge") +
-  labs(title = "Gender by Type of Exploitation",
-       x = "Gender Status",
-       y = "Count") +
-  theme_classic() +
-  scale_fill_npg()
-genders_by_type_dodge
+ggsave("final/gender_by_type.png")
 
 ```
 
