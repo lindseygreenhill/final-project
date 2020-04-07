@@ -9,6 +9,12 @@ library(janitor)
 library(readxl)
 library(ggthemes)
 library(ggsci)
+library(gt)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+library(rgeos)
+library(ggrepel)
 library(tidyverse)
 ```
 
@@ -53,14 +59,86 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
 code_data <- read_csv("raw-data/data_csv.csv")  %>% clean_names()
 
 joined_data <- ctdc_data %>%
-  inner_join(code_data, by = c("citizenship" = "code")) %>%
+  left_join(code_data, by = c("citizenship" = "code")) %>%
   inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
   rename(origin_country = name.x, destination_country = name.y) %>%
   select(-citizenship, -country_of_exploitation, -datasource)
 ```
 
+
+```{r map_prep, echo=FALSE}
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+o <- ctdc_data %>% count(citizenship) %>%
+  rename("o_count" = n)
+
+d <- ctdc_data %>% count(country_of_exploitation, sort=T) %>%
+  rename("d_count" = n)
+d
+
+world_1 <- world %>% left_join(o, by = c("postal" = "citizenship"))
+world_2 <- world_1 %>% left_join(d, by = c("postal" = "country_of_exploitation"))
+
+```
+
+```{r maps, echo=FALSE}
+
+
+origins_map <- ggplot(data = world_2) +
+  geom_sf(aes(fill = o_count)) +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(title = "Map of Origin Countries",
+       fill = "Count") +
+  theme_classic() 
+  
+destinations_map <- ggplot(data = world_2) +
+  geom_sf(aes(fill = d_count)) +
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt") +
+  labs(title = "Map of Exploitation Countries",
+       fill = "Count") +
+  theme_classic() 
+destinations_map
+
+```
+
+
+```{r o/d table, echo=FALSE}
+
+origins <- joined_data %>%
+  count(origin_country, sort = T) %>%
+  slice(1:10) %>%
+  gt() %>%
+  tab_header(title = "Counts of Origin Countries",
+             subtitle = "Top 10 displayed") %>%
+  cols_label(origin_country = "Country", n = "")
+ggsave("Shiny_app/origin_table.png")
+
+destinations <- joined_data %>%
+  count(destination_country, sort = T) %>%
+  slice(1:10) %>%
+  gt() %>%
+  tab_header(title = "Counts of Destination Countries",
+             subtitle = "Top 10 displayed") %>%
+  cols_label(destination_country = "Country", n = "")  
+ggsave("Shiny_app/destination_table.png")
+
+
+combinations <- joined_data %>%
+  count(origin_country, destination_country, sort = T) %>%
+  slice(1:10) %>%
+   gt() %>%
+  tab_header(title = "Counts of Origin/Destination Pairs",
+             subtitle = "Top 10 displayed") %>%
+  cols_label(origin_country = "Origin", destination_country = "Destination",
+             n = "")  
+ggsave("Shiny_app/combination_table.png")
+
+```
+
+
 ```{r exploreData, echo=FALSE}
-ctdc_data %>% count(majority_status)
+ctdc_data %>% count(age)
 ctdc_data %>% count(citizenship)
 ctdc_data %>% count(country_of_exploitation)
 ctdc_data %>% count(type_of_exploit_concatenated)
@@ -70,13 +148,13 @@ ctdc_data %>% count(gender)
 ```{r bygender, echo=FALSE}
 gender <- ctdc_data %>%
   ggplot(aes(x = gender)) +
-  geom_bar() +
+  geom_bar(fill = "lightblue") +
   labs(title = "Counts of Gender",
        subtitle = "Majority female",
        x = "Gender",
        y = "Count") +
   theme_classic()
-gender
+ggsave("Shiny_app/gender.png")
 
 ```
 
@@ -93,8 +171,7 @@ type_of_exploit_concatenated == "Forced labour" ~ "Forced Labor",
 type_of_exploit_concatenated == "Forced marriage" ~ "Forced Marriage",
 type_of_exploit_concatenated == "Sexual exploitation" ~ "Sexual Exploitation",
 type_of_exploit_concatenated == "Slavery and similar practices"  ~ "Slavery",
-TRUE ~ "Other")) %>%
-  rename(age = majority_status)
+TRUE ~ "Other"))
 
 # reordering the factor levels to be reflective of their frequencies
 
@@ -104,13 +181,13 @@ byexploit1$type <- reorder(byexploit1$type, byexploit1$type, FUN = length)
 
 byexploit1_graph <- byexploit1 %>%
   ggplot(aes(x = type)) +
-  geom_bar() +
+  geom_bar(fill = "lightblue") +
   labs(title = "Counts of Different Types of Exploitation",
        subtitle  = "Other is most frequent followed by Sexual Exploitation and Forced Labor",
        x = "Type of Exploitation",
        y = "Count") +
   theme_classic()
-
+ggsave("Shiny_app/exploitation.png")
 byexploit1_graph
 
 ```
@@ -130,7 +207,7 @@ ages_by_type_stack <- byexploit1 %>%
   theme_classic() +
   scale_fill_npg()
 
-ggsave("final/ages_by_type.png")
+ggsave("Shiny_app/ages_by_type.png")
 
 
 
@@ -172,7 +249,7 @@ genders_by_type_stack <- byexploit1 %>%
   theme_classic() +
   scale_fill_npg()
 
-ggsave("final/gender_by_type.png")
+ggsave("shiny_app/gender_by_type.png")
 
 ```
 
