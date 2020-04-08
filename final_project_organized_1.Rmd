@@ -91,6 +91,7 @@ origins_map <- ggplot(data = world_2) +
   labs(title = "Map of Origin Countries",
        fill = "Count") +
   theme_classic() 
+ggsave("Shiny_app/orgins_map.png")
   
 destinations_map <- ggplot(data = world_2) +
   geom_sf(aes(fill = d_count)) +
@@ -98,7 +99,7 @@ destinations_map <- ggplot(data = world_2) +
   labs(title = "Map of Exploitation Countries",
        fill = "Count") +
   theme_classic() 
-destinations_map
+ggsave("Shiny_app/destinations_map.png")
 
 ```
 
@@ -157,6 +158,20 @@ gender <- ctdc_data %>%
 ggsave("Shiny_app/gender.png")
 
 ```
+
+```{r byage, echo=FALSE}
+age <- ctdc_data %>%
+  ggplot(aes(x = age)) +
+  geom_bar(fill = "lightblue") +
+  labs(title = "Counts of Age",
+       subtitle = "Majority Adult",
+       x = "Age Status",
+       y = "Count") +
+  theme_classic()
+ggsave("Shiny_app/age.png")
+
+```
+
 
 
 ```{r byexploit1, echo=FALSE}
