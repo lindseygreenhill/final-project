@@ -122,17 +122,15 @@ gsi_graph1 <- ggplot(GSI_joined, aes(origin_score, destination_score)) +
   theme_classic()
 
 # this graph is including when people move countries and don't and excluding
-# United States. this means that on average individuals are going from less
-# vulnerable countries to more vulnerable countries
+# United States. this means that on average individuals are going from more
+# vulnerable countries to less vulnerable countries
 
 G_2 <- GSI_joined %>% filter(destination_country != "United States",
-                                    destination_country != origin_country,
                              difference != is.na(difference)) %>%
   summarize(mean_diff = mean(difference)) %>% pull() %>%
   round(2)
 
-gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States",
-                                    destination_country != origin_country) %>%
+gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States") %>%
   ggplot(aes(difference)) +
   geom_histogram(binwidth = 4) +
   geom_vline(xintercept = G_2, color = "blue") +
@@ -140,9 +138,21 @@ gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States",
        and Origin GSI Vulnerability Scores",
        subtitle = "Mean of -9.47",
        caption = "Data from Walkfree Foundation") +
-  annotate("text", x = -17.47, y = 9, label = "Mean = 9.47", color = "blue") +
+  annotate("text", x = -17.47, y = 12, label = "Mean = -9.47", color = "blue") +
   theme_classic()
 
+testdata <- vector()
+for(i in 1:length(unique(joined_data$origin_country))){
+  sub <- joined_data[joined_data$origin_country == unique(joined_data$origin_country)[i], ]
+  addition <- c(unique(joined_data$origin_country)[i],
+                sum(sub$type == 'Sexual Exploitation', na.rm = T),
+                sum(sub$type == 'Forced Labor', na.rm = T))
+  testdata <- rbind(testdata, addition)
+}
+
+testdata <- as.data.frame(testdata)
+testdata[, -1] <- apply(testdata[, -1], 2, as.numeric)
+colnames(testdata) <- c('origin', 'se', 'fl')
 ```
 
 ```{r gdp_data, echo=FALSE}
