@@ -97,8 +97,49 @@ GSI_joined <- full_join(combinations_GSI, GSI, by = c("origin_country" = "countr
   rename(origin_score = overall_weighted_average) %>%
   left_join(GSI, by = c("destination_country" = "country")) %>%
   rename(destination_score = overall_weighted_average) %>%
-  filter(n > 0, origin_country != is.na(origin_country))
+  filter(n > 0, origin_country != is.na(origin_country)) %>%
+  mutate(difference = destination_score - origin_score)
 ```
+
+```{r GSI_regression, echo=FALSE}
+
+lm(destination_score ~ origin_score, data = GSI_joined)
+
+```
+
+
+```{r GSI_graph, echo=FALSE}
+
+gsi_graph1 <- ggplot(GSI_joined, aes(origin_score, destination_score)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "GSI Vulnerability Scores",
+       subtitle = "Positive Relationship between\n origin country score and destination country score",
+       x = "Origin Country Score",
+       y = "Destination Country Score") +
+  theme_classic()
+
+# this graph is including when people move countries and don't and excluding United States
+
+G_2 <- GSI_joined %>% filter(destination_country != "United States",
+                                    destination_country != origin_country,
+                             difference != is.na(difference)) %>%
+  summarize(mean_diff = mean(difference)) %>% pull() %>%
+  round(2)
+
+gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States",
+                                    destination_country != origin_country) %>%
+  ggplot(aes(difference)) +
+  geom_histogram(binwidth = 4) +
+  geom_vline(xintercept = G_2, color = "blue") +
+  labs(title = "Distribution of Differences of Destination\n and Origin GSI Vulnerability Scores",
+       subtitle = "Mean of -9.47",
+       caption = "Data from 2018 GSI") +
+  annotate("text", x = -17.47, y = 9, label = "Mean = 9.47", color = "blue") +
+  theme_classic()
+
+```
+
 
 
 ```{r map_prep, echo=FALSE}
