@@ -16,6 +16,7 @@ library(rnaturalearthdata)
 library(xml2)
 library(rvest)
 library(sf)
+library(broom)
 library(rgeos)
 library(ggrepel)
 library(tidyverse)
@@ -114,12 +115,15 @@ gsi_graph1 <- ggplot(GSI_joined, aes(origin_score, destination_score)) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(title = "GSI Vulnerability Scores",
-       subtitle = "Positive Relationship between\n origin country score and destination country score",
+       subtitle = "Positive Relationship between\n origin country score
+       and destination country score",
        x = "Origin Country Score",
        y = "Destination Country Score") +
   theme_classic()
 
-# this graph is including when people move countries and don't and excluding United States
+# this graph is including when people move countries and don't and excluding
+# United States. this means that on average individuals are going from less
+# vulnerable countries to more vulnerable countries
 
 G_2 <- GSI_joined %>% filter(destination_country != "United States",
                                     destination_country != origin_country,
@@ -132,14 +136,41 @@ gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States",
   ggplot(aes(difference)) +
   geom_histogram(binwidth = 4) +
   geom_vline(xintercept = G_2, color = "blue") +
-  labs(title = "Distribution of Differences of Destination\n and Origin GSI Vulnerability Scores",
+  labs(title = "Distribution of Differences of Destination\n
+       and Origin GSI Vulnerability Scores",
        subtitle = "Mean of -9.47",
-       caption = "Data from 2018 GSI") +
+       caption = "Data from Walkfree Foundation") +
   annotate("text", x = -17.47, y = 9, label = "Mean = 9.47", color = "blue") +
   theme_classic()
 
 ```
 
+```{r gdp_data, echo=FALSE}
+GDP <- read_excel("raw-data/WEO_Data.xls") %>%
+  clean_names() %>%
+  select(country, x2019)
+GDP_GSI <- left_join(GSI, GDP, by = c("country")) %>%
+  filter(country %in% GSI_joined$origin_country |
+           country %in% GSI_joined$destination_country,
+         !is.na(x2019),
+         !is.na(overall_weighted_average))
+  
+GDP_GSI_graph <- ggplot(GDP_GSI, aes(x2019, overall_weighted_average)) +
+  geom_point() +
+  scale_x_log10() +
+  geom_smooth(method = "lm") +
+  labs(title = "Vulnerability Score vs GDP",
+       subtitle = "Data points either origin or destination countries",
+       x = "GDP (billions)",
+       y = "Vulnerability Score",
+       caption = "Data from Walkfree Foundation and IMF") +
+  theme_classic()
+
+GDP_GSI_model <- lm(overall_weighted_average ~ x2019, data = GDP_GSI) %>%
+  tidy(conf.int=T) %>%
+  select(term, estimate, conf.low, conf.high)
+
+```
 
 
 ```{r map_prep, echo=FALSE}
