@@ -10,8 +10,11 @@ library(readxl)
 library(ggthemes)
 library(ggsci)
 library(gt)
+library(readxl)
 library(rnaturalearth)
 library(rnaturalearthdata)
+library(xml2)
+library(rvest)
 library(sf)
 library(rgeos)
 library(ggrepel)
@@ -63,6 +66,38 @@ joined_data <- ctdc_data %>%
   inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
   rename(origin_country = name.x, destination_country = name.y) %>%
   select(-citizenship, -country_of_exploitation, -datasource)
+```
+
+```{r GSI_data, include=FALSE}
+
+scrape_url <- "https://www.globalslaveryindex.org/2018/methodology/vulnerability/#table:13"
+GSI <- read_html(scrape_url) %>%
+  html_nodes(xpath = "/html/body/main/section/div/div/article/section[8]/div/div[2]/table") %>%
+  html_table() %>%
+  data.frame() %>%
+  clean_names() %>%
+  select(country, overall_weighted_average)
+
+combinations_GSI <- joined_data %>%
+  count(origin_country, destination_country, sort = T) %>%
+  mutate(origin_country = case_when(origin_country == "Russian Federation" ~ "Russia",
+                                    origin_country == "Viet Nam" ~ "Vietnam",
+                                    origin_country == "Taiwan, Province of China" ~ "Taiwan, China",
+                                    origin_country == "Hong Kong" ~ "Hong Kong, China",
+                                    origin_country == "Korea, Republic of" ~ "Korea, Democratic People’s Republic of (North Korea)",
+                                    TRUE ~ origin_country),
+         destination_country = case_when(destination_country == "Russian Federation" ~ "Russia",
+                                    destination_country == "Viet Nam" ~ "Vietnam",
+                                    destination_country == "Taiwan, Province of China" ~ "Taiwan, China",
+                                    destination_country == "Hong Kong" ~ "Hong Kong, China",
+                                    destination_country == "Korea, Republic of" ~ "Korea, Democratic People’s Republic of (North Korea)",
+                                    TRUE ~ destination_country))
+
+GSI_joined <- full_join(combinations_GSI, GSI, by = c("origin_country" = "country")) %>%
+  rename(origin_score = overall_weighted_average) %>%
+  left_join(GSI, by = c("destination_country" = "country")) %>%
+  rename(destination_score = overall_weighted_average) %>%
+  filter(n > 0, origin_country != is.na(origin_country))
 ```
 
 
