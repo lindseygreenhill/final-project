@@ -7,8 +7,13 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
 library(shinythemes)
+library(shiny)
+library(ggplot2)
+library(readr)
+library(janitor)
+library(tidyverse)
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(theme = shinytheme("flatly"),
@@ -100,7 +105,94 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             )
         ),
         tabPanel(
-            "A Closer Look"
+            "A Closer Look",
+            column(5,
+                   h1("How do Things Change for Different Types of Exploitation?"),
+                   p("There are four primary types of exploitation identified in the ctdc data set:
+                   Sexual Exploitation, Forced Labor, Forced Marriage, and .... The demographics of
+                   victims are different for each type of exploitation, as you can see in the 
+                   visuals. My research focused on Sexual Exploitation and Forced Labor, as 
+                   these two types of exploitation were by far the most frequent in the data set. 
+                   In looking at these graphics, note that individuals whose exploitation type
+                   is unknown or not recorded in the data set are codified as 'other'. 
+                "),
+                   h2("Gender Broken Up by Exploitation Type"),
+                   p("It is evident that the overwhelming amount of males in the data set 
+                     were victims of forced labor and the overwhelming individuals in sexual exploitation
+                     were female. This observation is consistent with the trend found in reports  that
+                     attempt to give a representational view of trafficking across the globe. These reports,
+                     such as those produced by the ILO. Overall, the 2018 ILO report on human trafficking
+                     found that the majority (71%) of all trafficked victims are female and that on average,
+                     men and boys are more likely to be trafficked into forced labor while women and girls
+                     are more likely to be trafficked into sexual exploitation."),
+                   br(),
+                   br(),
+                   br(),
+  
+                   h2("Age Broken Up by Exploitation Type"),
+                   p("The majority of individuals in this data set are adults, but there are 
+                     still a significant amount of children represented. The 2018 ILO report
+                     mentioned above found that about 28% of all human trafficking victims 
+                     are children, with a significant portion in all types of exploitation,
+                     especially in Sub-Haran Africa, the Caribbean, and Central America."),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+
+                   h2("Demographics by Exploitation"),
+                   p("Click on the options below to explore the distributions of gender and 
+                     age status for either Sexual Exploitation or Forced Labor."),
+                     sidebarLayout(
+                         selectInput(
+                             inputId = "i_1",
+                             label = "Demographic",
+                             choices = c("age" = "age",
+                                         "gender" = "gender"
+                                         )
+                         ),
+                         selectInput(
+                             inputId = "i_2",
+                             label = "Type of Exploitation",
+                             choices = c(
+                                 "Sexual Exploitation" = "Sexual Exploitation",
+                                 "Forced Labor" = "Forced Labor"
+                         ))
+                     )),
+            column(2,
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   imageOutput("gender_all"),
+                   br(),
+                   br(),
+                   br(),
+                   imageOutput("age_all"),
+                   br(),
+                   br(),
+                   br(),
+                   imageOutput("type_dem"),
+            )
+            
+            
         ),
         tabPanel(
             "By Country"
@@ -144,6 +236,38 @@ server <- function(input, output) {
              height = 400),
         deleteFile = FALSE
     )
+    output$gender_all <-  renderImage(
+        list(src = "gender_by_type.png",
+             width = 500,
+             height = 400),
+        deleteFile = FALSE
+    )
+    output$age_all <- renderImage(
+        list(src = "ages_by_type.png",
+             width = 500,
+             height = 400),
+        deleteFile = FALSE
+    )
+    output$type_dem <- renderImage({
+        x <- "sex_age.png"
+        if(input$i_1 == "gender"){
+            if(input$i_2 == "Sexual Exploitation"){
+                x <- "sexual_exploitation_gender.png"
+            }
+            else{
+                x <- "forced_labor_gender.png"
+            }
+        }
+        if(input$i_1 == "age"){
+            if(input$i_2 == "Forced Labor"){
+                x <- "forced_labor_age.png"
+            }
+        }
+        list(src = x,
+             width = 500,
+             height = 400)
+    }, deleteFile = FALSE)
+       
 
 }
 

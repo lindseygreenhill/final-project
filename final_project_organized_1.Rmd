@@ -355,7 +355,7 @@ type_age <- function(x){
     filter(type == x) %>%
     mutate(age  = reorder(age, age, FUN = length)) %>%
     ggplot(aes(x = age)) +
-    geom_bar() +
+    geom_bar(fill = "lightblue") +
     labs(title = paste("Ages of Exploitation: ", x),
          x = "Age",
          y = "Count") +
@@ -365,9 +365,23 @@ type_age <- function(x){
 # using function for forced labor and sexual exploitation
 
 labor_age <- type_age("Forced Labor")
+ggsave("Shiny_app/forced_labor_age.png")
 labor_age
+```
 
-sex_age <- type_age("Sexual Exploitation")
+
+```{r sex_age, echo=FALSE}
+byexploit1 %>%
+    filter(type == "Sexual Exploitation") %>%
+    mutate(age  = reorder(age, age, FUN = length)) %>%
+    ggplot(aes(x = age)) +
+    geom_bar(fill = "lightblue") +
+    labs(title ="Ages of Exploitation: Sexual Exploitation",
+         x = "Age",
+         y = "Count") +
+    theme_classic()
+ggsave("Shiny_app/sex_age.png")
+
 ```
 
 ```{r all_genders, echo=FALSE}
@@ -395,7 +409,7 @@ type_gender <- function(x){
     filter(type == x) %>%
     mutate(gender = reorder(gender, gender, FUN = length)) %>%
     ggplot(aes(x = gender)) +
-    geom_bar() +
+    geom_bar(fill = "lightblue") +
     labs(title = paste("Gender of Exploitation: ", x),
          x = "Gender",
          y = "Count") +
@@ -407,9 +421,10 @@ type_gender <- function(x){
 labor_gender <- type_gender("Forced Labor")
 labor_gender1 <- labor_gender + labs(subtitle = "Slight majority male")
 labor_gender1
+ggsave("Shiny_app/sexual_exploitation_gender.png")
 sex_gender <- type_gender("Sexual Exploitation")
 sex_gender1 <- sex_gender + labs(subtitle = "Large majority female")
-sex_gender1
+ggsave("Shiny_app/forced_labor_gender.png")
 ```
 
 ```{r by type_demographic, echo=FALSE}
