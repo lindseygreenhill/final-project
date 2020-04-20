@@ -8,11 +8,8 @@
 #
 
 library(shinythemes)
+library(stringr)
 library(shiny)
-library(ggplot2)
-library(readr)
-library(janitor)
-library(tidyverse)
 
 
 # Define UI for application that draws a histogram
@@ -22,12 +19,35 @@ ui <- fluidPage(theme = shinytheme("flatly"),
         "Human Trafficking",
         tabPanel(
             "Introduction",
-            column(5,
-            h1("Background"),
-            p("The goal of this project is to analyze the Counter Trafficking
-              Data Collaborative's most recent aggregated data set."),
-            h2("Where are the Trafficked Victims Coming From?"),
-            p("Explanation"),
+            h1("Background on Human Trafficking"),
+            column(8, 
+                p("Within the past few decades a combination of global economic 
+                and sociological factors has led to an increase in human trafficking. Many 
+                governments and NGOs have published reports estimating the extent of the 
+               problem -- the most prominent being the ILO's 2017 report entitled
+               Global Estimates of Modern Slavery: Forced Labor and Forced Marriage. Their 
+               report estimated that over 40 million people around the world were victims of 
+                modern slavery as of 2016. Although their data is not publically available, 
+                outside organizations have began to compile publically available data sets.
+                  ")),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            h1("About This Project"),
+            column(8, 
+                p("The purpose of this project is to analyze a data set compiled by the Counter
+                Trafficking Data Collaborative. This data set is an anonymized collection of
+                reports of human trafficking victims across the globe from 2002 to 2017. The
+                data set contains information on about 47,000 victims. The observations in this
+                data set primarily come from a standardized combination of Polaris and 
+                International Organization for Migration data.
+                This data is not necessarily intended to be a representative sample of all human
+                trafficking victims, but is one of the only large and reliable data sets on
+                human trafficking publicly available. I chose to only look at data past 2010,
+                because much of the data before then is missing.")),
             br(),
             br(),
             br(),
@@ -38,35 +58,14 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             br(),
             br(),
             br(),
-            h2("Where are They Ending Up?"),
-            p("explanation of map"),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            h2("What Gender are the Trafficked Victims?"),
-            p("explanation of gender image"),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            br(),
-            h2("How old are the Trafficked Victims?"),
-            p("explanation of age"),
+            h1("Where are the victims coming from?"),
+            column(4,
+                p("Out of all identified origin countries in this data set, 
+                  the most individuals identified the Philippines as their 
+                  origin country (12,141), followed by Ukraine (5661), Moldova (4914),
+                  The United States (4159), Cambodia (1949), Indonesia (1463),
+                  Myanmar (1281), Belarus (872), Mexico (444), and more.")),
+            column(8, imageOutput("origins_map")),
             br(),
             br(),
             br(),
@@ -80,8 +79,26 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             br(),
             br(),
             br(),
-            h2("What type of Exploitation is happening?"),
-            p("explanation of type"),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            h1("Where are they ending up?"),
+            column(4,
+                p("By far the most common destination country amongst the individuals is 
+                  the United States (16956), followed by Namibia (10733), Ukraine (4465),
+                  Moldova (4086), the Philippines (1988),  Indonesia (1755), Russia (1726),
+                  Cambodia (983), Thailand (453), Malaysia (444), and more. When considering 
+                  these counts, it is important to note that many of the individuals 
+                  who end up in the United States do not have their origin country codified,
+                  thus leading to the seemingly disproportionate amount of destination countries
+                  comparedto origin countries. With that being said, all of the individuals who 
+                  said their origin country was America also said their destination was America, 
+                  as it reflective of the nature of American human trafficking, especially sexual exploitation. 
+                  While it is typical in foreign countries for trafficked sexual exploitation victims
+                  to come from other places, in  America, those victims are usually domestic.")),
+            column(5, imageOutput("destinations_map")),
             br(),
             br(),
             br(),
@@ -92,17 +109,74 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             br(),
             br(),
             br(),
-            ),
-            column(2,
-            imageOutput("map"),
-            imageOutput("map2"),
             br(),
             br(),
             br(),
-            imageOutput("gender_overall"),
-            imageOutput("age_overall"),
-            imageOutput("type_overall")
-            )
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            h2("What gender are the trafficked victims?"),
+            column(3,
+                p("The majority of individuals in this data set are female (33740), but a 
+                  significant portion are men (13070). This division is consistent with the ILO's
+                  findings which state trafficking disproportionately affects women. Specifically,
+                  their 2017 report states that 71% of all victims are women.")),
+            column(5, imageOutput("gender_overall")),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            h2("How old are the trafficked victims?"),
+            column(3,
+                p("The majority of victims are adult, as is consistent with the ILO's findings.
+                The 2017 report estimated that as of 2016, about 152 million children were subject 
+                to child labor. To learn more about child labor, you can read the ILO's 2017
+                report: Global estimates of child labour: Results and trends, 2012-2016.")),
+            column(5, imageOutput("age_overall")),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            br(),
+            h2("What type of exploitation is occuring?"),
+            column(3,
+                p("The majority of individuals in the data suffered from sexual exploitation
+                  or forced labor, with some suffering from slavery (374) or forced marriage (154).
+                  The 2017 ILO report estimated that about 25 million people were subject to forced
+                  labor exploitation (this included sexual exploitation and slavery) while 15.4
+                  million people were subject to forced marriage")),
+            column(5, imageOutput("exploitation_overall"))
         ),
         tabPanel(
             "A Closer Look",
@@ -201,7 +275,8 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                "Forced Labor" = "Forced Labor"
                            ))
                    )),
-            column(5, imageOutput("type_dem"))),
+            column(5, imageOutput("type_dem"))
+            ),
         tabPanel(
             "By Country"
         ),
@@ -214,16 +289,16 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-    output$map <- renderImage(
+    output$origins_map <- renderImage(
         list(src = "orgins_map.png",
              width = 600,
-             height = 600),
+             height = 400),
         deleteFile = FALSE
     )
-    output$map2 <- renderImage(
+    output$destinations_map <- renderImage(
         list(src = "destinations_map.png",
              width = 600,
-             height = 600),
+             height = 400),
         deleteFile = FALSE
     )
     output$gender_overall <- renderImage(
@@ -238,7 +313,7 @@ server <- function(input, output) {
              height = 400),
         deleteFile = FALSE
     )
-    output$type_overall <- renderImage(
+    output$exploitation_overall <- renderImage(
         list(src = "exploitation.png",
              width = 500,
              height = 400),
@@ -259,14 +334,15 @@ server <- function(input, output) {
     output$type_dem <- renderImage({
         x <- "sex_age.png"
         if(input$i_1 == "gender"){
-            if(input$i_2 == "Sexual Exploitation"){
-                x <- "forced_labor_gender.png"
-            }
-            else{
+            if(input$i_2 == "Forced Labor"){
                 x <- "sexual_exploitation_gender.png"
             }
+        
+            else{
+                x <- "forced_labor_gender.png"
+            }
         }
-        if(input$i_1 == "age"){
+        else{
             if(input$i_2 == "Forced Labor"){
                 x <- "forced_labor_age.png"
             }

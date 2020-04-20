@@ -5,7 +5,22 @@ date: "02/28/2020"
 output: html_document
 ---
 ## About
-The purpose of this project is to analyze a data set compiled by the Counter Trafficking Data Collaborative. This data set is an anonymized collection of reports of human trafficking victims across the globe from 2002 to  2017. The data set contains information on about 47,000 victims. The observations in this data primarily come from a standardized combination of Polaris and IOM data. This data is not necessarily intended to be a representative sample of all human trafficking victims, but is one of the only large and reliable data sets on human trafficking publicly available. I chose to only look at data past 2010, because much of the data before then is missing. I plan on primarily focusing on the country of origin and country of destination for each trafficking victims. I am currently planning on using the polity index (which measures the level of democracy in a country and periods of transition) in conjunction with the ctdc data to see if there are any interesting patterns. I am also planning on focusing on non-US human trafficking, because American trafficking operates very differently than European, African, and Asian trafficking. I have joined the ctdc data and polity data based on country name and year. 
+The purpose of this project is to analyze a data set compiled by the Counter
+Trafficking Data Collaborative. This data set is an anonymized collection of
+reports of human trafficking victims across the globe from 2002 to 2017. The
+data set contains information on about 47,000 victims. The observations in this
+data set primarily come from a standardized combination of Polaris and IOM data.
+This data is not necessarily intended to be a representative sample of all human
+trafficking victims, but is one of the only large and reliable data sets on
+human trafficking publicly available. I chose to only look at data past 2010,
+because much of the data before then is missing. I plan on primarily focusing on
+the country of origin and country of destination for each trafficking victims. I
+am currently planning on using the polity index (which measures the level of
+democracy in a country and periods of transition) in conjunction with the ctdc
+data to see if there are any interesting patterns. I am also planning on
+focusing on non-US human trafficking, because American trafficking operates very
+differently than European, African, and Asian trafficking. I have joined the
+ctdc data and polity data based on country name and year.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
