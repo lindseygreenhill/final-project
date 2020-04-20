@@ -474,9 +474,76 @@ USA_age <- USA %>%
 USA_age
 ```
 
-```{r origins}
+```{r countries, echo=FALSE}
+
+country_type <- function(name){
+  joined_data %>% 
+    filter(origin_country == name) %>%
+  ggplot(aes(x = type)) +
+  geom_bar(fill = "lightblue") +
+  labs(title = paste("Types of Exploitation in ", name),
+       x = "Type of Exploitation",
+       y = "Count") +
+  theme_classic()
+}
+country_destinations <- function(name){
+  joined_data %>% 
+  filter(origin_country == name) %>%
+  count(destination_country, sort=T) %>%
+  gt() %>%
+  tab_header(title = "Counts of Countries Where People are Being Exploited",
+             subtitle = paste("Origin: ", name)) %>%
+    cols_label(destination_country = "Country",
+               n = "")
+}
+country_origins <- function(name){
+  joined_data %>% 
+  filter(destination_country == name) %>%
+  count(origin_country, sort=T) %>%
+  gt() %>%
+  tab_header(title = "Counts of Countries Where People are Coming From",
+             subtitle = paste("Destination: ", name)) %>%
+    cols_label(origin_country = "Country",
+               n = "")
+}
+
+country_time <- function(name){
+  joined_data %>%
+    filter(destination_country == name) %>%
+    group_by(year) %>%
+    count(count(year))
+}
+
+
+country_type("United States")
+country_destinations("United States")
+country_origins("United States")
 
 ```
+
+```{r cases_time, echo=FALSE}
+years <- ctdc_data %>%
+  group_by(year_of_registration) %>%
+  count() %>%
+  mutate(total = n)
+for(i in c(2:9)){
+  years[i,]$total <- years[i-1,]$total + years[i,]$n
+}
+  
+library(gganimate) 
+  ggplot(years, aes(x = year_of_registration, y = total)) +
+  geom_point() +
+  geom_line(color = "lightblue") +
+  transition_reveal(year_of_registration) +
+  labs(title = "Total Cases in Dataset over Time",
+       subtitle = "Timeframe from 2010 to beginning 2018",
+       x =  "Year",
+       y =  "Total Cases") +
+  theme_classic()
+anim_save("Shiny_app/time.gif")
+
+```
+
 
 
 
