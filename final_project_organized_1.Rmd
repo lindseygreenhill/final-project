@@ -53,6 +53,7 @@ ctdc_data <- read_csv("raw-data/the_global_dataset_3_sept_2018.csv", na = c("", 
           TRUE ~ "Other")) %>%
   rename(age = majority_status) %>%
     filter(year_of_registration >= 2010)
+
   
 ```
 
@@ -507,13 +508,6 @@ country_origins <- function(name){
                n = "")
 }
 
-country_time <- function(name){
-  joined_data %>%
-    filter(destination_country == name) %>%
-    group_by(year) %>%
-    count(count(year))
-}
-
 
 country_type("United States")
 country_destinations("United States")
@@ -542,6 +536,20 @@ library(gganimate)
   theme_classic()
 anim_save("Shiny_app/time.gif")
 
+```
+
+```{r country_list, echo=FALSE}
+
+countries_o <- joined_data %>%
+  count(origin_country, sort = T) %>%
+  rename(country = origin_country)
+
+countries_d <- joined_data %>%
+  count(destination_country, sort = T) %>%
+  rename(country = destination_country)
+all_c <- unique(bind_rows(countries_o, countries_d)$country)
+
+all_c
 ```
 
 

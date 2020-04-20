@@ -8,8 +8,47 @@
 #
 
 library(shinythemes)
+library(tidyverse)
+library(janitor)
+library(tidyverse)
 library(stringr)
+library(gt)
 library(shiny)
+
+ctdc_data <- read_csv("the_global_dataset_3_sept_2018.csv", na = c("", "-99", "NA")) %>% 
+    clean_names() %>%
+    select(year_of_registration, datasource, gender,
+           majority_status,
+           citizenship, type_of_exploit_concatenated,
+           country_of_exploitation,
+    ) %>%
+    mutate(type = case_when(
+        type_of_exploit_concatenated == "Forced labour" ~ "Forced Labor",
+        type_of_exploit_concatenated == "Forced marriage" ~ "Forced Marriage",
+        type_of_exploit_concatenated == "Sexual exploitation" ~ "Sexual Exploitation",
+        type_of_exploit_concatenated == "Slavery and similar practices"  ~ "Slavery",
+        TRUE ~ "Other")) %>%
+    rename(age = majority_status) %>%
+    filter(year_of_registration >= 2010)
+code_data <- read_csv("data_csv.csv")  %>% clean_names()
+
+joined_data <- ctdc_data %>%
+    left_join(code_data, by = c("citizenship" = "code")) %>%
+    inner_join(code_data, by = c("country_of_exploitation" = "code"))  %>%
+    rename(origin_country = name.x, destination_country = name.y) %>%
+    select(-citizenship, -country_of_exploitation, -datasource)
+
+countries_o <- joined_data %>%
+    count(origin_country, sort = T) %>%
+    rename(country = origin_country) %>%
+    filter(country != "NA")
+
+countries_d <- joined_data %>%
+    count(destination_country, sort = T) %>%
+    rename(country = destination_country) %>%
+    filter(country != "NA")
+all_c <- unique(bind_rows(countries_o, countries_d)$country)
+
 
 
 # Define UI for application that draws a histogram
@@ -323,8 +362,20 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             column(5, imageOutput("type_dem"))
             ),
         tabPanel(
-            "By Country"
+            "By Country",
+            h1("Information by Country"),
+            column(3,
+                   p("Click on the options below to explore the distributions of gender and 
+                     age status for either Sexual Exploitation or Forced Labor."),
+                   selectInput(
+                       inputId = "i_3",
+                       selected = "United States",
+                       label = "Country Name",
+                       choices = all_c
+                   )
         ),
+        column(4, gt_output("origin_list")),
+        column(4, gt_output("destination_list"))),
         tabPanel(
             "About"
         )
@@ -402,8 +453,33 @@ server <- function(input, output) {
              width = 500,
              height = 400)
     }, deleteFile = FALSE)
-       
+    
+    output$origin_list <- render_gt({
+        name <- input$i_3
+        joined_data %>% 
+            filter(destination_country == name) %>%
+            count(origin_country, sort=T) %>%
+            gt() %>%
+            tab_header(title = "Where People being exploited in this country are Coming From",
+                       subtitle = paste("Destination: ", name)) %>%
+            cols_label(origin_country = "Country",
+                       n = "")
+    }
+    )
+    output$destination_list <-render_gt({
+        name <- input$i_3
+        joined_data %>% 
+            filter(origin_country == name) %>%
+            count(destination_country, sort=T) %>%
+            gt() %>%
+            tab_header(title = "Where People from this Country are being Exploited",
+                       subtitle = paste("Origin: ", name)) %>%
+            cols_label(destination_country = "Country",
+                       n = "")
+    }
 
+    )
+       
 }
 
 # Run the application 
