@@ -375,7 +375,32 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                    )
         ),
         column(4, gt_output("origin_list")),
-        column(4, gt_output("destination_list"))),
+        column(4, gt_output("destination_list")),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        h3("Types of Exploitation"),
+        column(9, plotOutput("country_types"))),
         tabPanel(
             "About"
         )
@@ -477,8 +502,18 @@ server <- function(input, output) {
             cols_label(destination_country = "Country",
                        n = "")
     }
-
     )
+    output$country_types <- renderPlot({
+        name <- input$i_3
+        joined_data %>% 
+            filter(origin_country == name) %>%
+            ggplot(aes(x = type)) +
+            geom_bar(fill = "lightblue") +
+            labs(title = paste("Types of Exploitation in ", name),
+                 x = "Type of Exploitation",
+                 y = "Count") +
+            theme_classic()
+    })
        
 }
 
