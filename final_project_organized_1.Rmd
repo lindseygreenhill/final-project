@@ -269,6 +269,8 @@ ggplot(aes(x = x2019, y = total)) +
 
 
 ```{r gdp_data, echo=FALSE}
+library(webshot)
+
 GDP <- read_excel("raw-data/WEO_Data.xls") %>%
   clean_names() %>%
   select(country, x2019)
@@ -288,10 +290,20 @@ GDP_GSI_graph <- ggplot(GDP_GSI, aes(x2019, overall_weighted_average)) +
        y = "Vulnerability Score",
        caption = "Data from Walkfree Foundation and IMF") +
   theme_classic()
+ggsave("Shiny_app/gsi_gdp_graph.png")
 
-GDP_GSI_model <- lm(overall_weighted_average ~ x2019, data = GDP_GSI) %>%
+png("Shiny_app/gsi_gdp_reg_table.png")
+lm(overall_weighted_average ~ x2019, data = GDP_GSI) %>%
   tidy(conf.int=T) %>%
-  select(term, estimate, conf.low, conf.high)
+  select(term, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Regression Results GSI vs GDP",
+             subtitle = "x2019 = 2019 GDP") %>%
+  cols_label(term = "Variable", estimate = "Estimate",
+             conf.low = "Lower Bound",
+             conf.high = "Upper Bound")
+
+dev.off()
 
 ```
 
@@ -317,7 +329,8 @@ cicl <- joined_data %>% select(origin_country, destination_country) %>%
                         TRUE ~ to)) %>%
   data.frame()
 set.seed(8)
-circle <- chordDiagramFromDataFrame(cicl,
+png("Shiny_app/circle_4.png")
+chordDiagramFromDataFrame(cicl,
                           transparency = .3,
                           directional = 1, 
                           direction.type = c("arrows", "diffHeight"),
@@ -328,6 +341,7 @@ circle <- chordDiagramFromDataFrame(cicl,
                           link.sort = TRUE,
                           link.largest.ontop = TRUE,
                           small.gap = 1)
+title("Movement of Victims", cex = .8)
 circos.trackPlotRegion(
   track.index = 1, 
   bg.border = NA, 
@@ -343,19 +357,18 @@ circos.trackPlotRegion(
       labels = sector.index, 
       facing = "clockwise",
       adj = c(.15,.5),
-      cex = 0.6
+      cex = 0.8
       )
     
     circos.par(
-      gap.degree = 0,
-      canvas.ylim = c(-.25, .25),
-      canvas.xlim = c(-.25, .25)
+      gap.degree = 5
     )
+    
 
   }
 )
-circos.clear()
-ggsave("circ.png")
+dev.off()
+
 ```
 
 ```{r map_prep, echo=FALSE}

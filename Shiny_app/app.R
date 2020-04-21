@@ -402,6 +402,28 @@ ui <- fluidPage(theme = shinytheme("flatly"),
         h3("Types of Exploitation"),
         column(9, plotOutput("country_types"))),
         tabPanel(
+            "GSI & GDP",
+            h1("What is the GSI"),
+            p("In 2014, The Walk Free Foundation pubished the first  Global Slavery Index (GSI) 
+            study. Since then, they have released three followup reports, the most recent in 2018.
+            The index ranks each country across the globe in three areas: prevalence, government 
+            response, and vulnerability. The prevalence parameter estimates the total amount of 
+            servitude in a country, the government response parameter evaluates the efforts
+            of governments to combat the problem of servitude, and the vulnerability
+            parameter analyzizes the underlying problems in each country which make
+             servitude more likely."),
+            h3("How does it relate to human trafficking?"),
+            p("The end result of trafficking is exploitation in one form or another. Most
+              often this exploitation fits the UN's definition of servitude, so the GSI
+              can be used as a proxy to understand trafficking patterns as well."),
+            h2("Connecting GSI to GDP"),
+            p("The regression below shows the relationship between GSI and GDP. 
+              The relationship is negtive and fairly strong, meaning that on average,
+              countries with a higher GDP have a lower vulnerability score. *This
+              regression uses vulnerabilityl GSI scores (the facotrs that make a country
+              vulnerable to modern slavery also make it vulnerable to human trafficking).")
+        ),
+        tabPanel(
             "About"
         )
     )
