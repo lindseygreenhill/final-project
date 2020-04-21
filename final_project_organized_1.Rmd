@@ -305,10 +305,20 @@ cicl <- joined_data %>% select(origin_country, destination_country) %>%
   count(origin_country, destination_country) %>%
   rename(from = origin_country, to = destination_country, value = n) %>%
   filter(from != "NA", value > 30) %>%
+  mutate(from = case_when(from == "Moldova, Republic of" ~ "Moldova",
+                          from == "Taiwan, Province of China" ~ "Taiwan",
+                          from == "Lao People's Democratic Republic" ~ "Laos",
+                          from == "Russian Federation" ~ "Russia",
+                          TRUE ~ from),
+         to = case_when(to == "Moldova, Republic of" ~ "Moldova",
+                          to == "Taiwan, Province of China" ~ "Taiwan",
+                          to == "Lao People's Democratic Republic" ~ "Laos",
+                          to == "Russian Federation" ~ "Russia",
+                        TRUE ~ to)) %>%
   data.frame()
 set.seed(8)
-chordDiagramFromDataFrame(cicl,
-                          transparency = .5,
+circle <- chordDiagramFromDataFrame(cicl,
+                          transparency = .3,
                           directional = 1, 
                           direction.type = c("arrows", "diffHeight"),
                           diffHeight = -.04,
@@ -332,19 +342,20 @@ circos.trackPlotRegion(
       y = 3.2, 
       labels = sector.index, 
       facing = "clockwise",
-      adj = c(.05,.5),
+      adj = c(.15,.5),
       cex = 0.6
       )
     
     circos.par(
-      gap.degree = 9,
-      canvas.ylim = c(-1.5, 1.5),
-      canvas.ylim = c(-1.5, 1.5)
+      gap.degree = 0,
+      canvas.ylim = c(-.25, .25),
+      canvas.xlim = c(-.25, .25)
     )
 
   }
 )
-ggsave("Shiny_app/circ.png")
+circos.clear()
+ggsave("circ.png")
 ```
 
 ```{r map_prep, echo=FALSE}
