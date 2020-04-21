@@ -147,14 +147,126 @@ for(i in 1:length(unique(joined_data$origin_country))){
   sub <- joined_data[joined_data$origin_country == unique(joined_data$origin_country)[i], ]
   addition <- c(unique(joined_data$origin_country)[i],
                 sum(sub$type == 'Sexual Exploitation', na.rm = T),
-                sum(sub$type == 'Forced Labor', na.rm = T))
+                sum(sub$type == 'Forced Labor', na.rm = T),
+                sum(sub$type == 'Forced Marriage', na.rm = T),
+                sum(sub$type == 'Slavery', na.rm = T))
   testdata <- rbind(testdata, addition)
 }
 
 testdata <- as.data.frame(testdata)
 testdata[, -1] <- apply(testdata[, -1], 2, as.numeric)
-colnames(testdata) <- c('origin', 'se', 'fl')
+colnames(testdata) <- c('origin', 'se', 'fl', 'fm', 's')
+
+testdata_d <- vector()
+for(i in 1:length(unique(joined_data$destination_country))){
+  sub <- joined_data[joined_data$destination_country == unique(joined_data$destination_country)[i], ]
+  addition <- c(unique(joined_data$destination_country)[i],
+                sum(sub$type == 'Sexual Exploitation', na.rm = T),
+                sum(sub$type == 'Forced Labor', na.rm = T),
+                sum(sub$type == 'Forced Marriage', na.rm = T),
+                sum(sub$type == 'Slavery', na.rm = T))
+  testdata_d <- rbind(testdata_d, addition)
+}
+
+testdata_d <- as.data.frame(testdata_d)
+testdata_d[, -1] <- apply(testdata_d[, -1], 2, as.numeric)
+colnames(testdata_d) <- c('destination', 'se', 'fl', 'fm', 's')
 ```
+
+
+```{r GDP_type_reg, echo=F}
+GDP <- read_excel("raw-data/WEO_Data.xls") %>%
+  clean_names() %>%
+  select(country, x2019)
+GDP_type <- left_join(testdata, GDP, by = c("origin" = "country")) %>%
+  mutate(total = se + fl + fm + s)
+GDP_type
+
+se_US <- GDP_type %>% filter(se > 0) %>%
+ggplot(aes(x = x2019, y = se)) +
+  scale_x_log10() +
+  geom_point() +
+  labs(title = "Number of Sexual Exploitation victims vs GDP",
+       x = "GDP",
+       y = "Sexual Exploitation Victims") +
+  geom_smooth(method = "lm") +
+  theme_classic()
+se_no_US <- GDP_type %>% filter(origin != "United States", se > 0) %>%
+ggplot(aes(x = x2019, y = se)) +
+  scale_x_log10() +
+  geom_point() +
+  labs(title = "Number of Sexual Exploitation victims vs GDP",
+       x = "GDP",
+       y = "Sexual Exploitation Victims") +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+fl <- GDP_type %>% filter(fl > 0) %>%
+ggplot(aes(x = x2019, y = fl)) +
+  scale_x_log10() +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Number of Forced Labor victims vs GDP",
+       x = "GDP",
+       y = "Forced Labor Victims") +
+  theme_classic()
+
+total <- GDP_type %>% filter(total > 0) %>%
+ggplot(aes(x = x2019, y = total)) +
+  scale_x_log10() +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Number of total victims vs GDP",
+       x = "GDP",
+       y = "Victims") +
+  theme_classic()
+```
+
+```{r GDP_type_d, echo=FALSE}
+GDP_type_d <- left_join(testdata_d, GDP, by = c("destination" = "country")) %>%
+  mutate(total = se + fl + fm + s)
+
+se_US <- GDP_type_d %>% filter(se > 0) %>%
+ggplot(aes(x = x2019, y = se)) +
+  scale_x_log10() +
+  geom_point() +
+  labs(title = "Number of Sexual Exploitation victims vs GDP",
+       x = "GDP",
+       y = "Sexual Exploitation Victims") +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+se_no_US <- GDP_type_d %>% filter(destination != "United States", se > 0) %>%
+ggplot(aes(x = x2019, y = se)) +
+  scale_x_log10() +
+  geom_point() +
+  labs(title = "Number of Sexual Exploitation victims vs GDP",
+       x = "GDP",
+       y = "Sexual Exploitation Victims") +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+fl <- GDP_type_d %>% filter(fl > 0) %>%
+ggplot(aes(x = x2019, y = fl)) +
+  scale_x_log10() +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Number of Forced Labor victims vs GDP",
+       x = "GDP",
+       y = "Forced Labor Victims") +
+  theme_classic()
+
+total <- GDP_type_d %>% filter(total > 0) %>%
+ggplot(aes(x = x2019, y = total)) +
+  scale_x_log10() +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Number of total victims vs GDP",
+       x = "GDP",
+       y = "Victims") +
+  theme_classic()
+```
+
 
 ```{r gdp_data, echo=FALSE}
 GDP <- read_excel("raw-data/WEO_Data.xls") %>%
