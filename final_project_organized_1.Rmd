@@ -138,9 +138,12 @@ gsi_graph2 <- GSI_joined %>% filter(destination_country != "United States") %>%
   labs(title = "Distribution of Differences of Destination\n
        and Origin GSI Vulnerability Scores",
        subtitle = "Mean of -9.47",
-       caption = "Data from Walkfree Foundation") +
+       caption = "Data from Walkfree Foundation",
+       x = "Destination GSI - Origin GSI",
+       y = "Count") +
   annotate("text", x = -17.47, y = 12, label = "Mean = -9.47", color = "blue") +
   theme_classic()
+ggsave("Shiny_app/gsi_diff_graph.png")
 
 testdata <- vector()
 for(i in 1:length(unique(joined_data$origin_country))){
@@ -292,8 +295,8 @@ GDP_GSI_graph <- ggplot(GDP_GSI, aes(x2019, overall_weighted_average)) +
   theme_classic()
 ggsave("Shiny_app/gsi_gdp_graph.png")
 
-png("Shiny_app/gsi_gdp_reg_table.png")
-lm(overall_weighted_average ~ x2019, data = GDP_GSI) %>%
+jpeg("Shiny_app/gsi_gdp_reg_table1.jpeg")
+gsi <- lm(overall_weighted_average ~ x2019, data = GDP_GSI) %>%
   tidy(conf.int=T) %>%
   select(term, estimate, conf.low, conf.high) %>%
   gt() %>%
