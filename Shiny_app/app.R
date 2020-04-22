@@ -475,7 +475,14 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             imageOutput("gsi_diff")
         ),
         tabPanel(
-            "About"
+            "About",
+            h3("Project Background and Motivations"),
+            p("Hello, this is where I talk about my project."),
+            h3("About Me"),
+            column(7,
+            p("My name is Lindsey Greenhill and I study Government with a specialization
+              in Data Science and a secondary in Economics. 
+              You can reach me at lgreenhill@college.harvard.edu."))
         )
     )
 )
