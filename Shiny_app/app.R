@@ -421,7 +421,25 @@ ui <- fluidPage(theme = shinytheme("flatly"),
               The relationship is negtive and fairly strong, meaning that on average,
               countries with a higher GDP have a lower vulnerability score. *This
               regression uses vulnerabilityl GSI scores (the facotrs that make a country
-              vulnerable to modern slavery also make it vulnerable to human trafficking).")
+              vulnerable to modern slavery also make it vulnerable to human trafficking)."),
+            imageOutput("gsi_gdp"),
+            br(),
+            br(),
+            br(),
+            br(),
+            imageOutput("reg_results_gsi"),
+            h2("GSI Scores and Trafficking Movement"),
+            p("The graphic below visualizes the differences in 
+                  GSI scores between origin and destination countries. The data includes each unique
+                  combination of origin and destination countries (i.e. one combination would 
+                  be origin: Philippines and destination: Namibia). The most frequent difference
+              between destination and origin GSI scores is zero, and this is mainly due to combinations
+              where the origin country is the destination country. The mean of the histogram
+              is -9.47, which means that more combinations than not had a higher origin GSI
+              score than destination GSI score. In other words, on average, victims are coming
+              from relatively more vulnerable countries and being exploited in relatively
+              less vulnerable countries. "),
+            imageOutput("gsi_diff")
         ),
         tabPanel(
             "About"
@@ -536,6 +554,26 @@ server <- function(input, output) {
                  y = "Count") +
             theme_classic()
     })
+    
+    output$gsi_gdp <- renderImage(
+        list(src = "gsi_gdp_graph.png",
+             width = 600,
+             height = 472),
+        deleteFile = FALSE
+    )
+    output$reg_results_gsi <- renderImage(
+        list(src = "file.png",
+             width = 500,
+             height = 200),
+        deleteFile = FALSE
+    )
+    
+    output$gsi_diff <- renderImage(
+        list(src = "gsi_diff_graph.png",
+             width = 700,
+             height = 572),
+        deleteFile = FALSE
+    )
        
 }
 
