@@ -202,7 +202,11 @@ ui <- fluidPage(theme = shinytheme("flatly"),
             h2("Movement of Victims"),
             column(3,
                    p("This visualization shows the flow of victims from country
-                     to country. Larger ribbons represent a greater number of victims")),
+                     to country. Movement of victims is visualized by ribbons with arrow heads.
+                     Larger ribbons represent a greater number of victims. For example, you can 
+                     see that there is a large flow of victims from the Philippines to Namibia. You
+                     can also see that there is also a fair amount of intrastate trafficking within
+                     the Philippines, Moldova, Ukraine, and the United States.")),
             column(5, imageOutput("movement")),
             br(),
             br(),
@@ -477,11 +481,27 @@ ui <- fluidPage(theme = shinytheme("flatly"),
         tabPanel(
             "About",
             h3("Project Background and Motivations"),
-            p("Hello, this is where I talk about my project."),
+            p("This is my final project for Gov1005: Data. I originally came up with the idea
+              to look at human trafficking because of another class I took this semester: 
+              Professor Orlando Patterson's Gened1115: Human Trafficking, Slavery and Abolition
+              in the Modern World. The course looked at instances of modern day trafficking, servitude, 
+              and slavery around the world. A major theme in the course is the lack of reliable 
+              data and statistics available about the subject, largely due to the relative newness
+              and underground nature of human trafficking. This dearth of knowledge inspired me to 
+              explore what little data is publically available on human trafficking."),
+            h4("Dataset 1: CTDC Data"),
+            p("The primary dataset I worked with came from the Counter Trafficking Data Collective
+              group. You can read about this data set on Introduction page."),
+            h4("Dataset 2: IMF GDP"),
+            p("I used the IMF's data on country level GDP for 2019 in my regressions."),
+            h4("Dataset 3: GSI"),
+            p("I used the Walkfree foundation's GSI study in my statistics. You can read more 
+              about the data set in the GSI&GDP page."),
             h3("About Me"),
             column(7,
             p("My name is Lindsey Greenhill and I study Government with a specialization
-              in Data Science and a secondary in Economics. 
+              in Data Science and a secondary in Economics at Harvard University. I will graduate
+              in spring 2023. 
               You can reach me at lgreenhill@college.harvard.edu."))
         )
     )

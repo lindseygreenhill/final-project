@@ -223,6 +223,8 @@ ggplot(aes(x = x2019, y = total)) +
        x = "GDP",
        y = "Victims") +
   theme_classic()
+
+total_gsi_gdp_mod <- lm(total ~ x2019 ~ )
 ```
 
 ```{r GDP_type_d, echo=FALSE}
@@ -270,6 +272,18 @@ ggplot(aes(x = x2019, y = total)) +
   theme_classic()
 ```
 
+```{r multireg, echo=FALSE}
+
+library(dotwhisker)
+
+totals <- joined_data %>% count(origin_country) %>%
+  rename(total = n)
+totals_all <- totals %>% left_join(GDP_GSI, by = c("origin_country" = "country"))
+
+total_mod <- lm(total ~ overall_weighted_average + x2019, data = totals_all)
+dwplot(total_mod)
+
+```
 
 ```{r gdp_data, echo=FALSE}
 library(webshot)
